@@ -7,7 +7,8 @@ from sqlalchemy.exc import IntegrityError
 
 from forms import (UserAddForm, EditProfileForm, LoginForm,
     MessageForm, CSRFProtectForm)
-from models import db, connect_db, User, Message
+from models import (db, connect_db, User, Message, DEFAULT_IMAGE_URL, 
+    DEFAULT_HEADER_IMAGE_URL)
 
 load_dotenv()
 
@@ -237,12 +238,6 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # TODO: explore if we want to change this so that the form
-    # doesn't pre-populate the update form with current info;
-    # current form styling hides input labels inside of the
-    # inputs, so we don't see them when we prepopulate with
-    # current information.
-
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -254,23 +249,24 @@ def profile():
         password = form.password.data
         username = form.username.data
 
-        user_updated = User.authenticate(
+        user = User.authenticate(
             username=g.user.username,
             password=password
         ) # the user instance if success; "False" if fail
 
-        if user_updated:
-            user_updated.username = username
-            user_updated.email = form.email.data,
-            user_updated.image_url = form.image_url.data,
-            user_updated.header_image_url = form.header_image_url.data,
-            user_updated.bio = form.bio.data
+        if user:
+            user.username = username or user.username
+            user.email = form.email.data or user.email
+            user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
+            user.header_image_url = (form.header_image_url.data or
+                DEFAULT_HEADER_IMAGE_URL)
+            user.bio = form.bio.data
 
-            db.session.add(user_updated)
+            db.session.add(user)
             db.session.commit()
 
             flash("Profile updated.", "success")
-            return redirect(f"/users/{user_updated.id}")
+            return redirect(f"/users/{user.id}")
         else:
             flash("Incorrect password.", "danger")
 

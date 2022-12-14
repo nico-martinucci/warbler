@@ -37,6 +37,17 @@ body.error-404 {
   font-weight: bold;
 }
 
+.navbar button {
+  background: none;
+  border: none;
+  color:  #66757f;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: inherit;
+}
+
 .navbar a:hover {
   color: #1c94e0;
 }
