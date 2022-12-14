@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import (UserAddForm, EditProfileForm, LoginForm, 
+from forms import (UserAddForm, EditProfileForm, LoginForm,
     MessageForm, CSRFProtectForm)
 from models import db, connect_db, User, Message
 
@@ -239,23 +239,23 @@ def profile():
 
     # TODO: explore if we want to change this so that the form
     # doesn't pre-populate the update form with current info;
-    # current form styling hides input labels inside of the 
-    # inputs, so we don't see them when we prepopulate with 
+    # current form styling hides input labels inside of the
+    # inputs, so we don't see them when we prepopulate with
     # current information.
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    user_original = User.query.get_or_404(session[CURR_USER_KEY])
-    form = EditProfileForm(obj=user_original)
+
+    form = EditProfileForm(obj=g.user)
 
     if form.validate_on_submit():
         password = form.password.data
         username = form.username.data
-        
+
         user_updated = User.authenticate(
-            username=user_original.username,
+            username=g.user.username,
             password=password
         ) # the user instance if success; "False" if fail
 
@@ -264,7 +264,7 @@ def profile():
             user_updated.email = form.email.data,
             user_updated.image_url = form.image_url.data,
             user_updated.header_image_url = form.header_image_url.data,
-            user_updated.bio = form.bio.data 
+            user_updated.bio = form.bio.data
 
             db.session.add(user_updated)
             db.session.commit()
@@ -365,9 +365,13 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
 
+    following = [user.id for user in g.user.following]
+    following.append(g.user.id)
+
     if g.user:
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
