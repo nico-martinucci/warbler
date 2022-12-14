@@ -54,6 +54,7 @@
             <a href="/users/profile" class="btn btn-outline-secondary">
               Edit Profile
             </a>
+            <!-- add in CSRF protection -->
             <form method="POST" action="/users/delete">
               <button class="btn btn-outline-danger ms-2">
                 Delete Profile
@@ -61,11 +62,13 @@
             </form>
             {% elif g.user %}
             {% if g.user.is_following(user) %}
+            <!-- add in CSRF protection -->
             <form method="POST"
-                  action="/users/stop-following/{{ user.id }}">
-              <button class="btn btn-primary">Unfollow</button>
-            </form>
-            {% else %}
+            action="/users/stop-following/{{ user.id }}">
+            <button class="btn btn-primary">Unfollow</button>
+          </form>
+          {% else %}
+          <!-- add in CSRF protection -->
             <form method="POST" action="/users/follow/{{ user.id }}">
               <button class="btn btn-outline-primary">Follow</button>
             </form>

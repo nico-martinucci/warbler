@@ -45,6 +45,8 @@ def add_user_to_g():
     else:
         g.user = None
 
+# add another @app.before_request for csrf - 
+# you can have as many of these as you want!
 
 def do_login(user):
     """Log in user."""
@@ -133,7 +135,7 @@ def logout():
 
     else:
         # didn't pass CSRF; ignore logout attempt
-        raise redirect("/")
+        return redirect("/")
 
 
 
@@ -235,13 +237,13 @@ def stop_following(follow_id):
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
+# change function name to be more specific
 def profile():
     """Update profile for current user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-
 
     form = EditProfileForm(obj=g.user)
 
@@ -255,6 +257,8 @@ def profile():
         ) # the user instance if success; "False" if fail
 
         if user:
+            # don't need the "or"s for required fields - our forms will take
+            # care of this on both the client-side and server-side validation
             user.username = username or user.username
             user.email = form.email.data or user.email
             user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
@@ -360,11 +364,12 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
-    following = [user.id for user in g.user.following]
-    following.append(g.user.id)
-
+    
     if g.user:
+        # can't .append to list comprehension, but can add it!
+        following = [user.id for user in g.user.following] + [g.user.id]
+        # following.append(g.user.id)
+
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following))
