@@ -37,16 +37,18 @@ connect_db(app)
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
 
-    g.csrf_form = CSRFProtectForm()
-
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
 
     else:
         g.user = None
 
-# add another @app.before_request for csrf - 
-# you can have as many of these as you want!
+
+@app.before_request
+def create_csrf_only_form():
+    """ Adds CSFR only form for use in all routes. """
+    g.csrf_form = CSRFProtectForm()
+
 
 def do_login(user):
     """Log in user."""
@@ -123,8 +125,6 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user and redirect to homepage."""
-    # IMPLEMENT THIS AND FIX BUG
-    # DO NOT CHANGE METHOD ON ROUTE
 
     form = g.csrf_form
 
@@ -237,8 +237,7 @@ def stop_following(follow_id):
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
-# change function name to be more specific
-def profile():
+def edit_profile():
     """Update profile for current user."""
 
     if not g.user:
@@ -257,10 +256,8 @@ def profile():
         ) # the user instance if success; "False" if fail
 
         if user:
-            # don't need the "or"s for required fields - our forms will take
-            # care of this on both the client-side and server-side validation
-            user.username = username or user.username
-            user.email = form.email.data or user.email
+            user.username = Username
+            user.email = form.email.data
             user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
             user.header_image_url = (form.header_image_url.data or
                 DEFAULT_HEADER_IMAGE_URL)
@@ -366,9 +363,7 @@ def homepage():
     """
     
     if g.user:
-        # can't .append to list comprehension, but can add it!
         following = [user.id for user in g.user.following] + [g.user.id]
-        # following.append(g.user.id)
 
         messages = (Message
                     .query

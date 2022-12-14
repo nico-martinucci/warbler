@@ -23,14 +23,14 @@
             </a>
 
             {% if g.user.is_following(follower) %}
-            <!-- add in CSRF -->
             <form method="POST"
             action="/users/stop-following/{{ follower.id }}">
+            {{ g.csrf_form.hidden_tag() }}
             <button class="btn btn-primary btn-sm">Unfollow</button>
           </form>
           {% else %}
-          <!-- add in CSRF -->
             <form method="POST" action="/users/follow/{{ follower.id }}">
+              {{ g.csrf_form.hidden_tag() }}
               <button class="btn btn-outline-primary btn-sm">
                 Follow
               </button>
