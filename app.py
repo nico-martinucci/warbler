@@ -49,6 +49,7 @@ def create_csrf_only_form():
     """ Adds CSFR only form for use in all routes. """
     g.csrf_form = CSRFProtectForm()
 
+# add in before_request that validates current user
 
 def do_login(user):
     """Log in user."""
