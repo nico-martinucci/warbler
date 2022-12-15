@@ -59,9 +59,14 @@
             </div>
             {% if msg.user.username != g.user.username %}
             <div>
-              <form action="">
+              <form action="/messages/likes" method="POST">
                 {{ g.csrf_form.hidden_tag() }}
-                <a href=""><i class="bi bi-star"></i></a>
+                <input type="hidden" name="message_id" value="{{msg.id}}">
+                {% if msg.id in likes %}
+                <button class="btn btn-link messages-like"><i class="bi bi-star-fill"></i></button>
+                {% else %}
+                <button class="btn btn-link messages-like"><i class="bi bi-star"></i></button>
+                {% endif %}
               </form>
             </div>
             {% endif %}

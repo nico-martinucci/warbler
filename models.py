@@ -176,7 +176,7 @@ class Message(db.Model):
         nullable=False,
     )
 
-class Likes(db.Model):
+class Like(db.Model):
     """ Join table containg which messages have been liked by which users. """
 
     __tablename__ = 'likes'

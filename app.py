@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from forms import (UserAddForm, EditProfileForm, LoginForm,
     MessageForm, CSRFProtectForm)
-from models import (db, connect_db, User, Message, DEFAULT_IMAGE_URL, 
+from models import (db, connect_db, User, Message, Like, DEFAULT_IMAGE_URL,
     DEFAULT_HEADER_IMAGE_URL)
 
 load_dotenv()
@@ -349,6 +349,38 @@ def delete_message(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+@app.post('/messages/likes')
+def like_message():
+    """Like/Dislike a message."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    form = g.csrf_form
+
+
+    if form.validate_on_submit():
+        message = request.form["message_id"]
+        like = Like.query.get((message, g.user.id))
+
+        if like:
+            db.session.delete(like)
+            db.session.commit()
+            return redirect('/')
+
+        else:
+            new_like = Like(user_id=g.user.id, message_id=message)
+            db.session.add(new_like)
+            db.session.commit()
+            return redirect('/')
+    else:
+        return redirect("/")
+
+
+
+
+
 
 ##############################################################################
 # Homepage and error pages
@@ -361,9 +393,11 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    
+
     if g.user:
         following = [user.id for user in g.user.following] + [g.user.id]
+
+        likes = [msg.id for msg in g.user.liked_messages]
 
         messages = (Message
                     .query
@@ -372,7 +406,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, likes=likes)
 
     else:
         return render_template('home-anon.html')
