@@ -34,6 +34,8 @@ db.create_all()
 
 class UserModelTestCase(TestCase):
     def setUp(self):
+        """ Set up for user model tests. """
+
         User.query.delete()
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
@@ -49,7 +51,10 @@ class UserModelTestCase(TestCase):
         self.client = app.test_client()
 
     def tearDown(self):
+        """ Tear down for user models tests. """        
+
         db.session.rollback()
+        
 
     def test_user_model(self):
         u1 = User.query.get(self.u1_id)
