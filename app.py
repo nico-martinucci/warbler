@@ -49,6 +49,7 @@ def create_csrf_only_form():
     """ Adds CSFR only form for use in all routes. """
     g.csrf_form = CSRFProtectForm()
 
+# add in before_request that validates current user
 
 def do_login(user):
     """Log in user."""
@@ -364,6 +365,7 @@ def delete_message(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+# add in messages id to url param instead of using the form
 @app.post('/messages/likes')
 def like_message():
     """Like/Dislike a message."""
@@ -372,11 +374,13 @@ def like_message():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    # try using WTForms to do this instead
     form = g.csrf_form
-
 
     if form.validate_on_submit():
         redirect_loc = request.form["redirect_loc"]
+        
+        # use our ORM to do this instead - .append()
         message = request.form["message_id"]
         like = Like.query.get((g.user.id, message))
 
@@ -395,10 +399,6 @@ def like_message():
 
 
 
-
-
-
-
 ##############################################################################
 # Homepage and error pages
 
@@ -414,7 +414,7 @@ def homepage():
     if g.user:
         following = [user.id for user in g.user.following] + [g.user.id]
 
-        likes = [msg.id for msg in g.user.liked_messages]
+        liked_message_ids = {msg.id for msg in g.user.liked_messages} # --> this is a set; O(1) for sets!
 
         messages = (Message
                     .query
