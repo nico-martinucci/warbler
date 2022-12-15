@@ -58,7 +58,27 @@ class MessageBaseViewTestCase(TestCase):
         self.client = app.test_client()
 
 
+
+
+
+
 class MessageAddViewTestCase(MessageBaseViewTestCase):
+    def setUp(self):
+        User.query.delete()
+
+        u1 = User.signup("u1", "u1@email.com", "password", None)
+        db.session.flush()
+
+        m1 = Message(text="m1-text", user_id=u1.id)
+        db.session.add_all([m1])
+        db.session.commit()
+
+        self.u1_id = u1.id
+        self.m1_id = m1.id
+
+        self.client = app.test_client()
+
+
     def test_add_message(self):
         # Since we need to change the session to mimic logging in,
         # we need to use the changing-session trick:
@@ -73,3 +93,4 @@ class MessageAddViewTestCase(MessageBaseViewTestCase):
             self.assertEqual(resp.status_code, 302)
 
             Message.query.filter_by(text="Hello").one()
+

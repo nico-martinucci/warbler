@@ -37,6 +37,7 @@ class UserModelTestCase(TestCase):
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
         u2 = User.signup("u2", "u2@email.com", "password", None)
+        u1.following.append(u2)
 
         db.session.commit()
         self.u1_id = u1.id
@@ -53,3 +54,30 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u1.messages), 0)
         self.assertEqual(len(u1.followers), 0)
+
+
+    def test_is_following(self):
+        u1 = User.query.get(self.u1_id)
+        u2 = User.query.get(self.u2_id)
+
+        self.assertTrue(u1.is_following(u2))
+
+
+# Does is_following successfully detect when user1 is following user2?
+    # 2 users. 1 follows the other in db.
+    # User1 follows user 2, but user 2 does not follow user 1.
+# Does is_following successfully detect when user1 is not following user2?
+
+# Does is_followed_by successfully detect when user1 is followed by user2?
+
+# Does is_followed_by successfully detect when user1 is not followed by user2?
+
+# Does User.signup successfully create a new user given valid credentials?
+
+# Does User.signup fail to create a new user if any of the validations (eg uniqueness, non-nullable fields) fail?
+
+# Does User.authenticate successfully return a user when given a valid username and password?
+
+# Does User.authenticate fail to return a user when the username is invalid?
+
+# Does User.authenticate fail to return a user when the password is invalid?
