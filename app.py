@@ -95,7 +95,7 @@ def signup():
             return render_template('users/signup.html', form=form)
 
         do_login(user)
-
+        flash("Sign up successfull!", 'success')
         return redirect("/")
 
     else:
@@ -379,7 +379,7 @@ def like_message():
 
     if form.validate_on_submit():
         redirect_loc = request.form["redirect_loc"]
-        
+
         # use our ORM to do this instead - .append()
         message = request.form["message_id"]
         like = Like.query.get((g.user.id, message))
@@ -423,7 +423,7 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages, likes=likes)
+        return render_template('home.html', messages=messages, likes=liked_message_ids)
 
     else:
         return render_template('home-anon.html')

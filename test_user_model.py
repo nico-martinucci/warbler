@@ -43,6 +43,8 @@ class UserModelTestCase(TestCase):
         db.session.commit()
         self.u1_id = u1.id
         self.u2_id = u2.id
+        self.username = u1.username
+        self.password = 'password'
 
         self.client = app.test_client()
 
@@ -86,8 +88,8 @@ class UserModelTestCase(TestCase):
         u3 = User.signup("u3", "u3@email.com", "password", None)
         db.session.commit()
         self.assertIsNotNone(User.query.get(u3.id))
-        
-        # test for unsuccessful signup, due to no username
+
+        # test for unsuccessful signup, due to missing required input
         with self.assertRaises(IntegrityError):
             User.signup(None, "u4@email.com", "password", None)
             db.session.commit()
@@ -98,11 +100,17 @@ class UserModelTestCase(TestCase):
         with self.assertRaises(IntegrityError):
             User.signup("u3", "u5@email.com", "password", None)
             db.session.commit()
-        
-        
 
-# Does User.authenticate successfully return a user when given a valid username and password?
+    def test_authenticate(self):
+        """ Test the class method authenticate. """
 
-# Does User.authenticate fail to return a user when the username is invalid?
+        u1 = User.query.get(self.u1_id)
 
-# Does User.authenticate fail to return a user when the password is invalid?
+        # Test correct username, password
+        self.assertTrue(User.authenticate(self.username, self.password))
+        # Test incorrect password
+        self.assertFalse(User.authenticate(self.username, 'cupcake'))
+        # Test incorrect username
+        self.assertFalse(User.authenticate('fake', self.password))
+
+    # Test cascade effect on deletions in db.
