@@ -57,6 +57,14 @@
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
             </div>
+            {% if msg.user.username != g.user.username %}
+            <div>
+              <form action="">
+                {{ g.csrf_form.hidden_tag() }}
+                <a href=""><i class="bi bi-star"></i></a>
+              </form>
+            </div>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
