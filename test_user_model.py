@@ -9,6 +9,7 @@ import os
 from unittest import TestCase
 
 from models import db, User, Message, Follows, connect_db
+from sqlalchemy.exc import IntegrityError
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -57,24 +58,48 @@ class UserModelTestCase(TestCase):
 
 
     def test_is_following(self):
+        """ Tests if the User.is_following instance method works. """
+
         u1 = User.query.get(self.u1_id)
         u2 = User.query.get(self.u2_id)
 
+        # test for method returning True - u1 DOES follow u2
         self.assertTrue(u1.is_following(u2))
+        # test for method returning False - u2 DOES NOT follow u1
+        self.assertFalse(u2.is_following(u1))
 
+    def test_is_followed_by(self):
+        """ Tests if the User.is_followed_by instance method works. """
 
-# Does is_following successfully detect when user1 is following user2?
-    # 2 users. 1 follows the other in db.
-    # User1 follows user 2, but user 2 does not follow user 1.
-# Does is_following successfully detect when user1 is not following user2?
+        u1 = User.query.get(self.u1_id)
+        u2 = User.query.get(self.u2_id)
 
-# Does is_followed_by successfully detect when user1 is followed by user2?
+        # test for method returning True - u2 IS followed by u1
+        self.assertTrue(u2.is_followed_by(u1))
+        # test for method returning False - u1 IS NOT followed by u2
+        self.assertFalse(u1.is_followed_by(u2))
 
-# Does is_followed_by successfully detect when user1 is not followed by user2?
+    def test_user_signup(self):
+        """ Tests if the User.signup class method works. """
 
-# Does User.signup successfully create a new user given valid credentials?
+        # test for successfully created u3 - is in database
+        u3 = User.signup("u3", "u3@email.com", "password", None)
+        db.session.commit()
+        self.assertIsNotNone(User.query.get(u3.id))
+        
+        # test for unsuccessful signup, due to no username
+        with self.assertRaises(IntegrityError):
+            User.signup(None, "u4@email.com", "password", None)
+            db.session.commit()
 
-# Does User.signup fail to create a new user if any of the validations (eg uniqueness, non-nullable fields) fail?
+        db.session.rollback()
+
+        # test for unsuccessful signup, due to duplicate username
+        with self.assertRaises(IntegrityError):
+            User.signup("u3", "u5@email.com", "password", None)
+            db.session.commit()
+        
+        
 
 # Does User.authenticate successfully return a user when given a valid username and password?
 
