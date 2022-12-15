@@ -381,6 +381,10 @@ def like_message():
     else:
         return redirect(redirect_loc)
 
+@app.get('/messages/liked')
+def show_liked_messages():
+    """ Show all liked messages for the current user. """
+
 
 
 
