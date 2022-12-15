@@ -8,32 +8,27 @@
     <ul class="list-group no-hover" id="messages">
       <li class="list-group-item">
 
-        <a href="{{ url_for('show_user', user_id=message.user.id) }}">
-          <img src="{{ message.user.image_url }}"
-               alt=""
-               class="timeline-image">
+        <a href="{{ url_for('show_user', user_id=msg.user.id) }}">
+          <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
         </a>
 
         <div class="message-area">
           <div class="message-heading">
-            <a href="/users/{{ message.user.id }}">
-              @{{ message.user.username }}
+            <a href="/users/{{ msg.user.id }}">
+              @{{ msg.user.username }}
             </a>
 
             {% if g.user %}
-            {% if g.user.id == message.user.id %}
-            <form method="POST"
-                  action="/messages/{{ message.id }}/delete">
+            {% if g.user.id == msg.user.id %}
+            <form method="POST" action="/messages/{{ msg.id }}/delete">
               <button class="btn btn-outline-danger">Delete</button>
             </form>
-            {% elif g.user.is_following(message.user) %}
-            <form method="POST"
-                  action="/users/stop-following/{{ message.user.id }}">
+            {% elif g.user.is_following(msg.user) %}
+            <form method="POST" action="/users/stop-following/{{ msg.user.id }}">
               <button class="btn btn-primary">Unfollow</button>
             </form>
             {% else %}
-            <form method="POST"
-                  action="/users/follow/{{ message.user.id }}">
+            <form method="POST" action="/users/follow/{{ msg.user.id }}">
               <button class="btn btn-outline-primary btn-sm">
                 Follow
               </button>
@@ -41,10 +36,24 @@
             {% endif %}
             {% endif %}
           </div>
-          <p class="single-message">{{ message.text }}</p>
+          <p class="single-message">{{ msg.text }}</p>
           <span class="text-muted">
-              {{ message.timestamp.strftime('%d %B %Y') }}
-            </span>
+            {{ msg.timestamp.strftime('%d %B %Y') }}
+          </span>
+          {% if msg.user.username != g.user.username %}
+          <div class="like-buttons">
+            <form action="/messages/likes" method="POST">
+              {{ g.csrf_form.hidden_tag() }}
+              <input type="hidden" name="message_id" value="{{msg.id}}">
+              <input type="hidden" name="redirect_loc" value="/messages/{{msg.id}}">
+              {% if msg.id in likes %}
+              <button class="btn btn-link messages-like"><i class="bi bi-star-fill"></i></button>
+              {% else %}
+              <button class="btn btn-link messages-like"><i class="bi bi-star"></i></button>
+              {% endif %}
+            </form>
+          </div>
+          {% endif %}
         </div>
       </li>
     </ul>

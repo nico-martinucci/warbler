@@ -22,7 +22,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
@@ -172,8 +172,9 @@ def show_user(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
+    likes = [msg.id for msg in g.user.liked_messages]
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user, likes=likes)
 
 
 @app.get('/users/<int:user_id>/following')
@@ -328,7 +329,9 @@ def show_message(message_id):
         return redirect("/")
 
     msg = Message.query.get_or_404(message_id)
-    return render_template('messages/show.html', message=msg)
+    likes = [msg.id for msg in g.user.liked_messages]
+
+    return render_template('messages/show.html', msg=msg, likes=likes)
 
 
 @app.post('/messages/<int:message_id>/delete')
@@ -361,21 +364,22 @@ def like_message():
 
 
     if form.validate_on_submit():
+        redirect_loc = request.form["redirect_loc"]
         message = request.form["message_id"]
-        like = Like.query.get((message, g.user.id))
+        like = Like.query.get((g.user.id, message))
 
         if like:
             db.session.delete(like)
             db.session.commit()
-            return redirect('/')
+            return redirect(redirect_loc)
 
         else:
             new_like = Like(user_id=g.user.id, message_id=message)
             db.session.add(new_like)
             db.session.commit()
-            return redirect('/')
+            return redirect(redirect_loc)
     else:
-        return redirect("/")
+        return redirect(redirect_loc)
 
 
 
