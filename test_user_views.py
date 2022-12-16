@@ -6,7 +6,7 @@
 import os
 from unittest import TestCase
 from flask import session
-from models import db, User, Message, Follows, connect_db
+from models import db, User, Message, Follows, connect_db, Like
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
@@ -34,6 +34,8 @@ class TestUserViews(TestCase):
         db.session.flush()
         db.session.commit()
 
+        self.u1 = u1
+        self.u2 = u2
         self.username = u1.username
         self.password = "password"
         self.id = u1.id
@@ -217,15 +219,191 @@ class TestUserViews(TestCase):
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
 
-
-
             resp = c.post(f'/users/follow/{self.u2_id}', follow_redirects=True)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("u2", html)
 
+    def test_stop_following(self):
+        """ Test route to stop following other users. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            self.u1.following.append(self.u2)
+
+            resp = c.post(f'/users/stop-following/{self.u2_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn("u2", html)
+
+    def test_get_edit_profile(self):
+        """ Test route to get edit profile page.  """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/users/profile')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test edit user", html)
+
+    def test_post_edit_profile(self):
+        """ Test route to edit profile """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            data = {
+                'username': self.username,
+                'password': self.password
+            }
+            resp = c.post(f'/users/profile', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show user detial", html)
+
+    def test_delete_user(self):
+        """ Test route to delete user. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            resp = c.post(f'/users/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test signup page", html)
+
+    def test_get_add_message(self):
+        """ Test route to add message landing page. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/messages/new')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test add message", html)
+
+    def test_post_message(self):
+        """ Test route to post new message. """
+        #test user show
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            data = {
+                'text': "new post!"
+            }
+
+            resp = c.post('/messages/new', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show user detial", html)
+
+    def test_get_show_message(self):
+        """ Test route to show message landing page. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            test_msg = Message(text="test message")
+            self.u1.messages.append(test_msg)
+            db.session.commit()
+
+            resp = c.get(f'/messages/{self.u1.messages[0].id}')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test message", html)
+
+    def test_delete_message(self):
+        """ Test route to delete a message.  """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            test_msg = Message(text="test message")
+            self.u1.messages.append(test_msg)
+            db.session.commit()
+
+            resp = c.post(f'/messages/{test_msg.id}/delete',
+                        follow_redirects=True
+                        )
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn("test message", html)
+
+    def test_like_message(self):
+        """ Test route to like a message. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            test_msg = Message(text="test message")
+            self.u1.messages.append(test_msg)
+            db.session.commit()
+
+            data = {
+                'redirect_loc': "/",
+                'message_id': test_msg.id,
+                'like': None
+            }
+
+            resp = c.post(f'/messages/likes', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test homepage", html)
+
+    def test_unlike_message(self):
+        """ Test route to like a message. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            test_msg = Message(text="test message")
+            self.u1.messages.append(test_msg)
+            db.session.commit()
+
+            data = {
+                'redirect_loc': "/",
+                'message_id': test_msg.id,
+                'like': Like.query.get((self.u1.id, test_msg.id))
+            }
+
+            resp = c.post(f'/messages/likes', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test homepage", html)
+
+    def test_homepage(self):
+        """ Test route to show homepage. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            resp = c.get(f'/')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test homepage", html)
 
 
-
-
+    # test app.before_request & app.after_request routes?

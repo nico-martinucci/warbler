@@ -263,7 +263,7 @@ def edit_profile():
 
     if form.validate_on_submit():
         password = form.password.data
-        username = form.username.data
+        username = form.username.data # do we need this since we have g.user?
 
         user = User.authenticate(
             username=g.user.username,
@@ -271,7 +271,7 @@ def edit_profile():
         ) # the user instance if success; "False" if fail
 
         if user:
-            user.username = Username
+            user.username = form.username.data
             user.email = form.email.data
             user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
             user.header_image_url = (form.header_image_url.data or
