@@ -23,7 +23,9 @@ db.create_all()
 app.config['WTF_CSRF_ENABLED'] = False
 # One method test per view function
 
-class TestUserViews(TestCase):
+class UserViewsTestCase(TestCase):
+    """ Test cases for views related to users and user interaction. """
+
     def setUp(self):
         """ Set up for user view tests. """
         User.query.delete()
@@ -79,12 +81,11 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test homepage", html)
 
-        # test for bad payloud to /signup - repeat information
 
-        # TODO: this one isn't working - the route isn't catching the error from
-        # the database, so the test is failing... even though we want it to
-        # catch the error (like that's what we're trying to test)
     def test_bad_post_signup(self):
+        """ Test for bad payloud to /signup - 
+        repeat information. re-renders the page. """
+
         with self.client as c:
             data = {
                 'username': 'u1',
@@ -150,6 +151,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Welcome back.", html)
 
+
     def test_list_users(self):
         """ Test route for lising of users. """
 
@@ -164,6 +166,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test user index", html)
 
+
     def test_show_user(self):
         """ Test route for lising of users. """
 
@@ -175,6 +178,7 @@ class TestUserViews(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show user", html)
+
 
     def test_show_following(self):
         """ Test route for showing who the current user is following. """
@@ -188,6 +192,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show following", html)
 
+
     def test_show_followers(self):
         """ Test route for showing who is following the current user. """
 
@@ -199,6 +204,7 @@ class TestUserViews(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show followers", html)
+
 
     def test_liked_messages(self):
         """ Test route for showing all liked messages. """
@@ -212,6 +218,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show liked messages", html)
 
+
     def test_start_following(self):
         """ Test route for following other users. """
 
@@ -224,6 +231,7 @@ class TestUserViews(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("u2", html)
+
 
     def test_stop_following(self):
         """ Test route to stop following other users. """
@@ -240,6 +248,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertNotIn("u2", html)
 
+
     def test_get_edit_profile(self):
         """ Test route to get edit profile page.  """
 
@@ -251,6 +260,7 @@ class TestUserViews(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test edit user", html)
+
 
     def test_post_edit_profile(self):
         """ Test route to edit profile """
@@ -268,6 +278,7 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show user detial", html)
 
+
     def test_delete_user(self):
         """ Test route to delete user. """
 
@@ -281,116 +292,6 @@ class TestUserViews(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test signup page", html)
 
-    def test_get_add_message(self):
-        """ Test route to add message landing page. """
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-            resp = c.get(f'/messages/new')
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("test add message", html)
-
-    def test_post_message(self):
-        """ Test route to post new message. """
-        #test user show
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-            data = {
-                'text': "new post!"
-            }
-
-            resp = c.post('/messages/new', data=data, follow_redirects=True)
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("test show user detial", html)
-
-    def test_get_show_message(self):
-        """ Test route to show message landing page. """
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            test_msg = Message(text="test message")
-            self.u1.messages.append(test_msg)
-            db.session.commit()
-
-            resp = c.get(f'/messages/{self.u1.messages[0].id}')
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("test message", html)
-
-    def test_delete_message(self):
-        """ Test route to delete a message.  """
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            test_msg = Message(text="test message")
-            self.u1.messages.append(test_msg)
-            db.session.commit()
-
-            resp = c.post(f'/messages/{test_msg.id}/delete',
-                        follow_redirects=True
-                        )
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertNotIn("test message", html)
-
-    def test_like_message(self):
-        """ Test route to like a message. """
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            test_msg = Message(text="test message")
-            self.u1.messages.append(test_msg)
-            db.session.commit()
-
-            data = {
-                'redirect_loc': "/",
-                'message_id': test_msg.id,
-                'like': None
-            }
-
-            resp = c.post(f'/messages/likes', data=data, follow_redirects=True)
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("test homepage", html)
-
-    def test_unlike_message(self):
-        """ Test route to like a message. """
-
-        with self.client as c:
-            with c.session_transaction() as change_session:
-                change_session[CURR_USER_KEY] = self.id
-
-            test_msg = Message(text="test message")
-            self.u1.messages.append(test_msg)
-            db.session.commit()
-
-            data = {
-                'redirect_loc': "/",
-                'message_id': test_msg.id,
-                'like': Like.query.get((self.u1.id, test_msg.id))
-            }
-
-            resp = c.post(f'/messages/likes', data=data, follow_redirects=True)
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("test homepage", html)
 
     def test_homepage(self):
         """ Test route to show homepage. """
