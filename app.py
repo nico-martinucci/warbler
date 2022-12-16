@@ -366,36 +366,36 @@ def delete_message(message_id):
     return redirect(f"/users/{g.user.id}")
 
 # add in messages id to url param instead of using the form
-@app.post('/messages/likes')
-def like_message():
-    """Like/Dislike a message."""
+# @app.post('/messages/likes')
+# def like_message():
+#     """Like/Dislike a message."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+#     if not g.user:
+#         flash("Access unauthorized.", "danger")
+#         return redirect("/")
 
-    # try using WTForms to do this instead
-    form = g.csrf_form
+#     # try using WTForms to do this instead
+#     form = g.csrf_form
 
-    if form.validate_on_submit():
-        redirect_loc = request.form["redirect_loc"]
+#     if form.validate_on_submit():
+#         redirect_loc = request.form["redirect_loc"]
 
-        # use our ORM to do this instead - .append()
-        message = request.form["message_id"]
-        like = Like.query.get((g.user.id, message))
+#         # use our ORM to do this instead - .append()
+#         message = request.form["message_id"]
+#         like = Like.query.get((g.user.id, message))
 
-        if like:
-            db.session.delete(like)
-            db.session.commit()
-            return redirect(redirect_loc)
+#         if like:
+#             db.session.delete(like)
+#             db.session.commit()
+#             return redirect(redirect_loc)
 
-        else:
-            new_like = Like(user_id=g.user.id, message_id=message)
-            db.session.add(new_like)
-            db.session.commit()
-            return redirect(redirect_loc)
-    else:
-        return redirect(redirect_loc)
+#         else:
+#             new_like = Like(user_id=g.user.id, message_id=message)
+#             db.session.add(new_like)
+#             db.session.commit()
+#             return redirect(redirect_loc)
+#     else:
+#         return redirect(redirect_loc)
 
 
 

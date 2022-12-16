@@ -47,7 +47,7 @@
     <div class="col-lg-6 col-md-8 col-sm-12">
       <ul class="list-group" id="messages">
         {% for msg in messages %}
-          <li class="list-group-item">
+          <li class="list-group-item" id="{{ msg.id }}">
             <a href="/messages/{{ msg.id }}" class="message-link"/>
             <a href="/users/{{ msg.user.id }}">
               <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
@@ -59,16 +59,16 @@
             </div>
             {% if msg.user.username != g.user.username %}
             <div class="like-buttons">
-              <form action="/messages/likes" method="POST">
+              <!-- <form action="/messages/likes" method="POST">
                 {{ g.csrf_form.hidden_tag() }}
                 <input type="hidden" name="message_id" value="{{msg.id}}">
-                <input type="hidden" name="redirect_loc" value="/">
+                <input type="hidden" name="redirect_loc" value="/"> -->
                 {% if msg.id in likes %}
                 <button class="btn btn-link messages-like"><i class="bi bi-star-fill"></i></button>
                 {% else %}
                 <button class="btn btn-link messages-like"><i class="bi bi-star"></i></button>
                 {% endif %}
-              </form>
+              <!-- </form> -->
             </div>
             {% endif %}
           </li>
