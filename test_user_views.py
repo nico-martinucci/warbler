@@ -108,8 +108,8 @@ class UserViewsTestCase(TestCase):
             resp = c.get('/login')
             html = resp.get_data(as_text=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Welcome back.", html)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Welcome back.", html)
 
     def test_post_login(self):
         """ Test for get to login page at /login endpoint. """
@@ -173,6 +173,7 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+
             resp = c.get(f'/users/{self.id}')
             html = resp.get_data(as_text=True)
 
@@ -186,6 +187,7 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+
             resp = c.get(f'/users/{self.id}/following')
             html = resp.get_data(as_text=True)
 
@@ -199,6 +201,7 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+
             resp = c.get(f'/users/{self.id}/followers')
             html = resp.get_data(as_text=True)
 
@@ -212,6 +215,7 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+                
             resp = c.get(f'/users/{self.id}/liked_messages')
             html = resp.get_data(as_text=True)
 
@@ -255,6 +259,7 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+
             resp = c.get(f'/users/profile')
             html = resp.get_data(as_text=True)
 
@@ -268,10 +273,12 @@ class UserViewsTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as change_session:
                 change_session[CURR_USER_KEY] = self.id
+
             data = {
                 'username': self.username,
                 'password': self.password
             }
+
             resp = c.post(f'/users/profile', data=data, follow_redirects=True)
             html = resp.get_data(as_text=True)
 

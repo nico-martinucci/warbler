@@ -94,7 +94,6 @@ class MessageViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show user detial", html)
-            # added a more specific test to make sure the post is on the page
             self.assertIn("new post!", html)
 
 

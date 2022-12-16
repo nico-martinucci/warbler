@@ -33,6 +33,8 @@ db.create_all()
 
 
 class UserModelTestCase(TestCase):
+    """ Test cases for the user model. """
+
     def setUp(self):
         """ Set up for user model tests. """
 
@@ -43,12 +45,15 @@ class UserModelTestCase(TestCase):
         u1.following.append(u2)
 
         db.session.commit()
+        self.u1 = u1
+        self.u2 = u2
         self.u1_id = u1.id
         self.u2_id = u2.id
         self.username = u1.username
         self.password = 'password'
 
         self.client = app.test_client()
+
 
     def tearDown(self):
         """ Tear down for user models tests. """        
@@ -57,42 +62,44 @@ class UserModelTestCase(TestCase):
         
 
     def test_user_model(self):
-        u1 = User.query.get(self.u1_id)
+        """ Test if new user has no messages or followers. """
 
-        # User should have no messages & no followers
-        self.assertEqual(len(u1.messages), 0)
-        self.assertEqual(len(u1.followers), 0)
+        self.assertEqual(len(self.u1.messages), 0)
+        self.assertEqual(len(self.u1.followers), 0)
 
 
     def test_is_following(self):
         """ Tests if the User.is_following instance method works. """
 
-        u1 = User.query.get(self.u1_id)
-        u2 = User.query.get(self.u2_id)
-
         # test for method returning True - u1 DOES follow u2
-        self.assertTrue(u1.is_following(u2))
+        self.assertTrue(self.u1.is_following(self.u2))
         # test for method returning False - u2 DOES NOT follow u1
-        self.assertFalse(u2.is_following(u1))
+        self.assertFalse(self.u2.is_following(self.u1))
+
 
     def test_is_followed_by(self):
         """ Tests if the User.is_followed_by instance method works. """
 
-        u1 = User.query.get(self.u1_id)
-        u2 = User.query.get(self.u2_id)
-
         # test for method returning True - u2 IS followed by u1
-        self.assertTrue(u2.is_followed_by(u1))
+        self.assertTrue(self.u2.is_followed_by(self.u1))
         # test for method returning False - u1 IS NOT followed by u2
-        self.assertFalse(u1.is_followed_by(u2))
+        self.assertFalse(self.u1.is_followed_by(self.u2))
+
 
     def test_user_signup(self):
         """ Tests if the User.signup class method works. """
 
-        # test for successfully created u3 - is in database
         u3 = User.signup("u3", "u3@email.com", "password", None)
         db.session.commit()
         self.assertIsNotNone(User.query.get(u3.id))
+
+
+    def test_unsuccessful_signup(self):
+        """ Test for failed sign up, due to missing 
+        input or duplicate username """
+
+        u3 = User.signup("u3", "u3@email.com", "password", None)
+        db.session.commit()
 
         # test for unsuccessful signup, due to missing required input
         with self.assertRaises(IntegrityError):
@@ -106,10 +113,9 @@ class UserModelTestCase(TestCase):
             User.signup("u3", "u5@email.com", "password", None)
             db.session.commit()
 
+
     def test_authenticate(self):
         """ Test the class method authenticate. """
-
-        u1 = User.query.get(self.u1_id)
 
         # Test correct username, password
         self.assertTrue(User.authenticate(self.username, self.password))
@@ -117,5 +123,3 @@ class UserModelTestCase(TestCase):
         self.assertFalse(User.authenticate(self.username, 'cupcake'))
         # Test incorrect username
         self.assertFalse(User.authenticate('fake', self.password))
-
-    # Test cascade effect on deletions in db.

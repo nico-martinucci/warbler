@@ -263,7 +263,6 @@ def edit_profile():
 
     if form.validate_on_submit():
         password = form.password.data
-        username = form.username.data # do we need this since we have g.user?
 
         user = User.authenticate(
             username=g.user.username,
