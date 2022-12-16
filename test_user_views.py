@@ -193,7 +193,7 @@ class UserViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show following", html)
-
+        # could make users follow each other and check for their names
 
     def test_show_followers(self):
         """ Test route for showing who is following the current user. """
@@ -207,6 +207,7 @@ class UserViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show followers", html)
+        # could make users follow each other and check for their names
 
 
     def test_liked_messages(self):
@@ -221,6 +222,8 @@ class UserViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show liked messages", html)
+        # more detail: test to make sure an actual liked message
+        # is on the page
 
 
     def test_start_following(self):
@@ -284,6 +287,7 @@ class UserViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show user detial", html)
+            # another opportunity to test more specific edits
 
 
     def test_delete_user(self):

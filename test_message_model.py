@@ -70,6 +70,7 @@ class MessageModelTestCase(TestCase):
 
         self.assertIsNotNone(Message.query.get(m2.id))
         self.assertEqual(m2.user.username, "u1")
+        # more detail - could test that title=title, text=text, etc.
 
     
     def test_create_duplicate_message(self):
@@ -83,6 +84,7 @@ class MessageModelTestCase(TestCase):
 
         self.assertIsNotNone(Message.query.get(m2.id))
         self.assertEqual(len(self.u1.messages), 2)
+        # for more detailed (incl. user), do the query with filtering above
 
 
     def test_create_empty_message(self):

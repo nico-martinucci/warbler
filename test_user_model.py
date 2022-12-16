@@ -42,7 +42,7 @@ class UserModelTestCase(TestCase):
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
         u2 = User.signup("u2", "u2@email.com", "password", None)
-        u1.following.append(u2)
+        u1.following.append(u2) # better to do in the test - more explicit
 
         db.session.commit()
         self.u1 = u1
@@ -92,6 +92,9 @@ class UserModelTestCase(TestCase):
         u3 = User.signup("u3", "u3@email.com", "password", None)
         db.session.commit()
         self.assertIsNotNone(User.query.get(u3.id))
+        # can test inidividual inputs are what make it into the database
+        # can test that the password was successfully hashed
+            # test for "$2b$" at start of password
 
 
     def test_unsuccessful_signup(self):
@@ -119,6 +122,10 @@ class UserModelTestCase(TestCase):
 
         # Test correct username, password
         self.assertTrue(User.authenticate(self.username, self.password))
+        # could also make sure that a successful authentication returns the
+        # correct user - right now, could be getting back a different user
+        # somehow...
+
         # Test incorrect password
         self.assertFalse(User.authenticate(self.username, 'cupcake'))
         # Test incorrect username

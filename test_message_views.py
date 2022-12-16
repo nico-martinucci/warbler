@@ -95,6 +95,8 @@ class MessageViewsTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("test show user detial", html)
             self.assertIn("new post!", html)
+            # good place to test not being logged in - "Access unauthorized" flash
+            # do it without the session_transaction, use follow_redirects
 
 
     def test_get_show_message(self):
@@ -161,7 +163,7 @@ class MessageViewsTestCase(TestCase):
 
 
     def test_unlike_message(self):
-        """ Test route to like a message. """
+        """ Test route to unlike a message. """
 
         with self.client as c:
             with c.session_transaction() as change_session:
