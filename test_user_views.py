@@ -5,11 +5,12 @@
 #    python -m unittest test_user_views.py
 import os
 from unittest import TestCase
+from flask import session
 from models import db, User, Message, Follows, connect_db
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
-from app import app
+from app import app, CURR_USER_KEY, g
 
 app.config['TESTING'] = True
 app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
@@ -26,19 +27,24 @@ class TestUserViews(TestCase):
     def setUp(self):
         """ Set up for user view tests. """
         User.query.delete()
-        
+
         u1 = User.signup("u1", "u1@email.com", "password", None)
-        db.session.add(u1)
+        u2 = User.signup("u2", "u2@email.com", "password", None)
+
+        db.session.flush()
         db.session.commit()
 
         self.username = u1.username
         self.password = "password"
+        self.id = u1.id
+        self.u2_id = u2.id
 
         self.client = app.test_client()
-    
+
+
     def tearDown(self):
         """ Tear down for user view tests. """
-        
+
         db.session.rollback()
 
 
@@ -49,8 +55,8 @@ class TestUserViews(TestCase):
             resp = c.get('/signup')
             html = resp.get_data(as_text=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Join Warbler today.", html)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Join Warbler today.", html)
 
 
     def test_post_signup(self):
@@ -68,28 +74,28 @@ class TestUserViews(TestCase):
             resp = c.post('/signup', data=data, follow_redirects=True)
             html = resp.get_data(as_text=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("test homepage", html)
-        
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test homepage", html)
+
         # test for bad payloud to /signup - repeat information
 
-        # this one isn't working - the route isn't catching the error from
-        # the database, so the test is failing... even though we want it to 
+        # TODO: this one isn't working - the route isn't catching the error from
+        # the database, so the test is failing... even though we want it to
         # catch the error (like that's what we're trying to test)
+    def test_bad_post_signup(self):
+        with self.client as c:
+            data = {
+                'username': 'u1',
+                'password': 'u1_test@email.com',
+                'email': 'password',
+                'image_url': None
+            }
 
-        # with self.client as c:
-        #     data = {
-        #         'username': 'u1',
-        #         'password': 'u1_test@email.com',
-        #         'email': 'password',
-        #         'image_url': None
-        #     }
+            resp = c.post('/signup', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
 
-        #     resp = c.post('/signup', data=data)
-        #     html = resp.get_data(as_text=True)
-
-        # self.assertEqual(resp.status_code, 200)
-        # self.assertIn("Username already taken", html)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Username already taken", html)
 
 
     def test_get_login(self):
@@ -104,7 +110,7 @@ class TestUserViews(TestCase):
 
     def test_post_login(self):
         """ Test for get to login page at /login endpoint. """
-        
+
         # post to route with good paylod
         with self.client as c:
             data = {
@@ -115,9 +121,9 @@ class TestUserViews(TestCase):
             resp = c.post('/login', data=data, follow_redirects=True)
             html = resp.get_data(as_text=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("test homepage", html)
-        
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test homepage", html)
+
         # post to route with bad paylod - incorrect password
         with self.client as c:
             data = {
@@ -128,8 +134,8 @@ class TestUserViews(TestCase):
             resp = c.post('/login', data=data, follow_redirects=True)
             html = resp.get_data(as_text=True)
 
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Invalid credentials.", html)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Invalid credentials.", html)
 
 
     def test_logout(self):
@@ -138,6 +144,88 @@ class TestUserViews(TestCase):
         with self.client as c:
             resp = c.post('/login', follow_redirects=True)
             html = resp.get_data(as_text=True)
-        
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Welcome back.", html)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Welcome back.", html)
+
+    def test_list_users(self):
+        """ Test route for lising of users. """
+
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+            resp = c.get('/users')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test user index", html)
+
+    def test_show_user(self):
+        """ Test route for lising of users. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/users/{self.id}')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show user", html)
+
+    def test_show_following(self):
+        """ Test route for showing who the current user is following. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/users/{self.id}/following')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show following", html)
+
+    def test_show_followers(self):
+        """ Test route for showing who is following the current user. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/users/{self.id}/followers')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show followers", html)
+
+    def test_liked_messages(self):
+        """ Test route for showing all liked messages. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+            resp = c.get(f'/users/{self.id}/liked_messages')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("test show liked messages", html)
+
+    def test_start_following(self):
+        """ Test route for following other users. """
+
+        with self.client as c:
+            with c.session_transaction() as change_session:
+                change_session[CURR_USER_KEY] = self.id
+
+
+
+            resp = c.post(f'/users/follow/{self.u2_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("u2", html)
+
+
+
+
+
