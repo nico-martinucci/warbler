@@ -176,6 +176,16 @@ class Message(db.Model):
         nullable=False,
     )
 
+    def serialize(self):
+        """ Serializes message for jsonification. """
+
+        return {
+            "id": self.id,
+            "text": self.text,
+            "timestamp": self.timestamp,
+            "user_id": self.user_id,
+        }
+
 class Like(db.Model):
     """ Join table containg which messages have been liked by which users. """
 

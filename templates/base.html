@@ -7,10 +7,6 @@
 
   <link rel="stylesheet"
         href="https://unpkg.com/bootstrap@5/dist/css/bootstrap.css">
-  <script src="https://unpkg.com/jquery"></script>
-  <script src="https://unpkg.com/bootstrap"></script>
-  <script src="/static/app.js"></script>
-
 
   <link rel="stylesheet"
         href="https://www.unpkg.com/bootstrap-icons/font/bootstrap-icons.css">
@@ -81,6 +77,13 @@
   {% endblock %}
 
 </div>
+  <script src="https://unpkg.com/jquery"></script>
+  <script src="https://unpkg.com/axios/dist/axios.js"></script>
+  <script src="https://unpkg.com/bootstrap"></script>
+  <script src="/static/app.js"></script>
+  <script type="text/javascript">
+    axios.defaults.headers.common["X-CSRFToken"] = "{{ csrf_token() }}";
+  </script>
 </body>
 </html>
 

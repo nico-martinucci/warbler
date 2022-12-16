@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import (Flask, render_template, request, flash, redirect, session,
+    g, jsonify)
+from flask_wtf.csrf import CSRFProtect
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
@@ -15,6 +17,8 @@ load_dotenv()
 CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
+csrf.init_app(app)
 
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
@@ -364,6 +368,33 @@ def delete_message(message_id):
     db.session.commit()
 
     return redirect(f"/users/{g.user.id}")
+
+@app.post('/api/messages/<int:message_id>/likes')
+def like_unlike_message(message_id):
+    """ Handle AJAX request for liking/unliking message. """
+
+    form = g.csrf_form
+
+    if form.validate_on_submit():
+        # grab user's of current likes (list of message_ids)
+        target_message = Message.query.get(message_id)
+        liked_message_ids = {msg.id for msg in g.user.liked_messages} # --> this is a set; O(1) for sets!
+        # see if message_id is in ^ list
+        if message_id in liked_message_ids:
+            # if it is, .remove() message from user's likes 
+            g.user.liked_messages.remove(target_message)
+        else:
+            # if it is not, grab message based on message_id and .append()
+            g.user.liked_messages.append(target_message)
+
+        db.session.commit() 
+
+        serialized = target_message.serialize()
+
+        return (jsonify(message=serialized), 201)
+    else:
+        flash("Error!", "danger")
+    
 
 # add in messages id to url param instead of using the form
 # @app.post('/messages/likes')
