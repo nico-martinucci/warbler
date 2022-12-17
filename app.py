@@ -51,6 +51,7 @@ def add_user_to_g():
 @app.before_request
 def create_csrf_only_form():
     """ Adds CSFR only form for use in all routes. """
+    
     g.csrf_form = CSRFProtectForm()
 
 # add in before_request that validates current user
@@ -59,6 +60,13 @@ def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+
+
+@app.before_request
+def create_message_form():
+    """ Adds a message form for navbar message sending. """
+
+    g.message_form = MessageForm()
 
 
 def do_logout():
