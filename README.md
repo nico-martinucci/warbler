@@ -18,15 +18,20 @@ $ pip3 install -r requirements.txt
 2. Set up the database (PostgreSQL):
 ```
 $ psql
-=# CREATE DATABASE
+=# CREATE DATABASE warbler;
 (ctrl+D)
 $ python3 seed.py
 ```
-3. Run the server:
+3. Add a .env file with:
+```
+SECRET_KEY=(any secret key you want)
+DATABASE_URL=postgresql:///warbler
+```
+4. Run the server:
 ```
 $ flask run -p 5001
 ```
-4. View at `localhost:5001`
+5. View at `localhost:5001`
 
 ## // TODO
 - Fix background image formatting
