@@ -1,6 +1,8 @@
 # Warbler
 A twitter clone with a Flask back end
 
+Deployed at: https://warbler-nm.onrender.com/Add
+
 ## Features
 - User registration/authentication/profile deletion
 - Posting, liking, and deleting messages
@@ -32,6 +34,9 @@ DATABASE_URL=postgresql:///warbler
 $ flask run -p 5001
 ```
 5. View at `localhost:5001`
+
+## Tech
+- Vanilla JS, Axios, Flask, SQLAlchemy, WTForms, bcrypt
 
 ## // TODO
 - Fix background image formatting
