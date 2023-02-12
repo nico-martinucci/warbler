@@ -23,12 +23,15 @@ csrf.init_app(app)
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///warbler"
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
-toolbar = DebugToolbarExtension(app)
+app.config['SECRET_KEY'] = "secret key"
+
+# need this for now until we can debug the csrf issue...
+app.config['WTF_CSRF_ENABLED'] = False
+
+# toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
@@ -405,36 +408,36 @@ def like_unlike_message(message_id):
     
 
 # add in messages id to url param instead of using the form
-# @app.post('/messages/likes')
-# def like_message():
-#     """Like/Dislike a message."""
+@app.post('/messages/likes')
+def like_message():
+    """Like/Dislike a message."""
 
-#     if not g.user:
-#         flash("Access unauthorized.", "danger")
-#         return redirect("/")
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
 
-#     # try using WTForms to do this instead
-#     form = g.csrf_form
+    # try using WTForms to do this instead
+    form = g.csrf_form
 
-#     if form.validate_on_submit():
-#         redirect_loc = request.form["redirect_loc"]
+    if form.validate_on_submit():
+        redirect_loc = request.form["redirect_loc"]
 
-#         # use our ORM to do this instead - .append()
-#         message = request.form["message_id"]
-#         like = Like.query.get((g.user.id, message))
+        # use our ORM to do this instead - .append()
+        message = request.form["message_id"]
+        like = Like.query.get((g.user.id, message))
 
-#         if like:
-#             db.session.delete(like)
-#             db.session.commit()
-#             return redirect(redirect_loc)
+        if like:
+            db.session.delete(like)
+            db.session.commit()
+            return redirect(redirect_loc)
 
-#         else:
-#             new_like = Like(user_id=g.user.id, message_id=message)
-#             db.session.add(new_like)
-#             db.session.commit()
-#             return redirect(redirect_loc)
-#     else:
-#         return redirect(redirect_loc)
+        else:
+            new_like = Like(user_id=g.user.id, message_id=message)
+            db.session.add(new_like)
+            db.session.commit()
+            return redirect(redirect_loc)
+    else:
+        return redirect(redirect_loc)
 
 
 
