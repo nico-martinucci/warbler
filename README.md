@@ -36,7 +36,7 @@ $ flask run -p 5001
 5. View at `localhost:5001`
 
 ## Tech
-- Vanilla JS, Axios, Flask, SQLAlchemy, WTForms, bcrypt
+- Vanilla JS, Axios, Flask, SQLAlchemy, WTForms, bcrypt 
 
 ## // TODO
 - Fix background image formatting
