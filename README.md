@@ -1,7 +1,7 @@
 # Warbler
 A twitter clone with a Flask back end
 
-Deployed at: https://warbler-nm.onrender.com/Add
+Deployed at: https://warbler-nm.onrender.com/
 
 ## Features
 - User registration/authentication/profile deletion
