@@ -451,7 +451,8 @@ def homepage():
     """Show homepage:
 
     - anon users: no messages
-    - logged in: 100 most recent messages of followed_users
+    - logged in: 100 most recent messages of followed_users if following anyone,
+        or all users if not following anyone (or else it looks broken)
     """
 
     if g.user:
@@ -462,6 +463,13 @@ def homepage():
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following))
+                    .order_by(Message.timestamp.desc())
+                    .limit(100)
+                    .all())
+        
+        if len(following) == 1:
+            messages = (Message
+                    .query
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
